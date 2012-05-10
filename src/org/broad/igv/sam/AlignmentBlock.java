@@ -37,8 +37,8 @@ public class AlignmentBlock {
         return new AlignmentBlock(start, bases, qualities, baseAlignment);
     }
 
-    public static AlignmentBlock getInstance(int start, byte[] bases, byte[] qualities, short[][][] flowSignals, Alignment baseAlignment) {
-        return new AlignmentBlockFS(start, bases, qualities, flowSignals, baseAlignment);
+    public static AlignmentBlock getInstance(int start, byte[] bases, byte[] qualities, FlowSignalContext fContext, Alignment baseAlignment) {
+        return new AlignmentBlockFS(start, bases, qualities, fContext, baseAlignment);
     }
 
     protected AlignmentBlock(int start, byte[] bases, byte[] qualities, Alignment baseAlignment) {
@@ -103,7 +103,23 @@ public class AlignmentBlock {
     }
 
     // Default implementation -- to be overriden
-    public short[][] getFlowSignalContext(int offset) {
+    public FlowSignalSubContext getFlowSignalSubContext(int offset) {
         return null;
+    }
+
+    @Override
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("[block ");
+        sb.append(isSoftClipped()?"softClipped ":" ");
+        sb.append(getStart());
+        sb.append("-");
+        sb.append(getEnd());
+        sb.append(" ");
+        for (int i=0;i<bases.length;i++) {
+            sb.append((char)bases[i]);
+        }
+        sb.append("]")  ;
+        return sb.toString();
     }
 }

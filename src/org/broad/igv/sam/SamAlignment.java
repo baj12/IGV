@@ -1,19 +1,12 @@
 /*
- * Copyright (c) 2007-2011 by The Broad Institute of MIT and Harvard.  All Rights Reserved.
+ * Copyright (c) 2007-2012 The Broad Institute, Inc.
+ * SOFTWARE COPYRIGHT NOTICE
+ * This software and its documentation are the copyright of the Broad Institute, Inc. All rights are reserved.
+ *
+ * This software is supplied without any warranty or guaranteed support whatsoever. The Broad Institute is not responsible for its use, misuse, or functionality.
  *
  * This software is licensed under the terms of the GNU Lesser General Public License (LGPL),
  * Version 2.1 which is available at http://www.opensource.org/licenses/lgpl-2.1.php.
- *
- * THE SOFTWARE IS PROVIDED "AS IS." THE BROAD AND MIT MAKE NO REPRESENTATIONS OR
- * WARRANTES OF ANY KIND CONCERNING THE SOFTWARE, EXPRESS OR IMPLIED, INCLUDING,
- * WITHOUT LIMITATION, WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, NONINFRINGEMENT, OR THE ABSENCE OF LATENT OR OTHER DEFECTS, WHETHER
- * OR NOT DISCOVERABLE.  IN NO EVENT SHALL THE BROAD OR MIT, OR THEIR RESPECTIVE
- * TRUSTEES, DIRECTORS, OFFICERS, EMPLOYEES, AND AFFILIATES BE LIABLE FOR ANY DAMAGES
- * OF ANY KIND, INCLUDING, WITHOUT LIMITATION, INCIDENTAL OR CONSEQUENTIAL DAMAGES,
- * ECONOMIC DAMAGES OR INJURY TO PROPERTY AND LOST PROFITS, REGARDLESS OF WHETHER
- * THE BROAD OR MIT SHALL BE ADVISED, SHALL HAVE OTHER REASON TO KNOW, OR IN FACT
- * SHALL KNOW OF THE POSSIBILITY OF THE FOREGOING.
  */
 package org.broad.igv.sam;
 
@@ -33,7 +26,8 @@ import org.broad.igv.ui.IGV;
 import org.broad.igv.ui.color.ColorUtilities;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -60,16 +54,16 @@ public class SamAlignment extends AbstractAlignment implements Alignment {
     private int alignmentStart;
     private int alignmentEnd;
     private int readLength;
-    boolean readNegativeStrandFlag;
-    boolean duplicateReadFlag;
-    boolean readUnmappedFlag;
-    boolean readPairedFlag;
-    boolean properPairFlag;
-    SAMRecord record;
-    String cigarString;
-    String readSequence;
-    boolean firstRead = false;
-    boolean secondRead = false;
+    private boolean readNegativeStrandFlag;
+    private boolean duplicateReadFlag;
+    private boolean readUnmappedFlag;
+    private boolean readPairedFlag;
+    private boolean properPairFlag;
+    private SAMRecord record;
+    private String cigarString;
+    private String readSequence;
+    private boolean firstRead = false;
+    private boolean secondRead = false;
     private String mateSequence = null;
     private String pairOrientation = "";
     private Color defaultColor = AlignmentRenderer.grey1;
@@ -85,27 +79,26 @@ public class SamAlignment extends AbstractAlignment implements Alignment {
      * Converts a DNA integer value to its reverse compliment integer value.
      */
     protected static final char NT2COMP[] = {
-        'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',
-        'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',
-        'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',
-        'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',
-        'N', 'T', 'N', 'G',  'N', 'N', 'N', 'C',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',
-        'N', 'N', 'N', 'N',  'A', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',
-        'N', 'T', 'N', 'G',  'N', 'N', 'N', 'C',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',
-        'N', 'N', 'N', 'N',  'A', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',
-        'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',
-        'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',
-        'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',
-        'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',
-        'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',
-        'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',
-        'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',
-        'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N',  'N', 'N', 'N', 'N'
+            'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
+            'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
+            'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
+            'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
+            'N', 'T', 'N', 'G', 'N', 'N', 'N', 'C', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
+            'N', 'N', 'N', 'N', 'A', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
+            'N', 'T', 'N', 'G', 'N', 'N', 'N', 'C', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
+            'N', 'N', 'N', 'N', 'A', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
+            'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
+            'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
+            'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
+            'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
+            'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
+            'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
+            'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N',
+            'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N'
     };
 
     // Default constructor to support unit tests
-    SamAlignment() {
-    }
+    //SamAlignment() {}
 
 
     public SamAlignment(SAMRecord record) {
@@ -258,158 +251,6 @@ public class SamAlignment extends AbstractAlignment implements Alignment {
         }
     }
 
-    // Helper class to get the flow signals context
-    private class FlowOrderAndSignalsBlockHelper {
-
-        private short[] flowSignals = null;
-        private String flowOrder = null;
-        private int flowSignalsIndex = -1;
-        private int flowOrderIndex = -1;
-        private int prevFlowSignalsStart = -1;
-        private int prevFlowSignalsEnd = -1;
-        private boolean readNegativeStrandFlag;
-        private boolean[] incorporations = null; // required for the reverse strand
-
-        public FlowOrderAndSignalsBlockHelper(short[] flowSignals, String flowOrder, int flowOrderStart, byte[] readBases, boolean readNegativeStrandFlag) {
-            if (null == flowSignals || null == flowOrder || flowOrderStart < 0) {
-                return;
-            }
-
-            this.flowSignals = flowSignals;
-            this.flowOrder = flowOrder;
-            this.flowOrderIndex = flowOrderStart;
-            this.flowSignalsIndex = 0; // NB: the key sequence/barcode sequence should have been remove for the signals already
-            this.readNegativeStrandFlag = readNegativeStrandFlag;
-
-            // init
-            if (this.readNegativeStrandFlag) {
-                int i;
-                this.incorporations = new boolean[this.flowSignals.length];
-                // go to the end of the signals
-                for (i=readBases.length-1;0<=i;i--) {
-                    while (this.flowOrder.charAt(this.flowOrderIndex) != NT2COMP[readBases[i]]) {
-                        this.flowOrderIndex++;
-                        this.flowSignalsIndex++;
-                        this.incorporations[this.flowSignalsIndex] = false;
-                        if (this.flowOrder.length() <= this.flowOrderIndex) {
-                            this.flowOrderIndex = 0;
-                        }
-                    }
-                    this.incorporations[this.flowSignalsIndex] = true;
-                }
-                this.prevFlowSignalsStart = this.flowSignalsIndex + 1;
-                this.prevFlowSignalsEnd = this.flowSignals.length - 1;
-            } else {
-                this.prevFlowSignalsStart = this.prevFlowSignalsEnd = 0;
-                while (this.flowOrder.charAt(this.flowOrderIndex) != readBases[0]) {
-                    this.flowOrderIndex++;
-                    this.flowSignalsIndex++;
-                    if (this.flowOrder.length() <= this.flowOrderIndex) {
-                        this.flowOrderIndex = 0;
-                    }
-                }
-                this.prevFlowSignalsEnd = this.flowSignalsIndex - 1;
-            }
-        }
-
-        // TODO:
-        // - support IUPAC bases
-        // - support lower/upper cases (is this necessary)?
-        public short[][][] createBlockFlowSignals(byte[] readBases, int fromIdx, int nBases) {
-            int i, idx;
-            short[][][] blockFlowSignals = null;
-
-            if (null == this.flowSignals) {
-                return null;
-            }
-
-            blockFlowSignals = new short[nBases][][];
-            //Default value
-            Arrays.fill(blockFlowSignals, null);
-
-            // NB: should be at the first base of a HP
-            // Go through the bases
-            i = fromIdx;
-            idx = 0;
-            while (0 <= this.flowSignalsIndex && this.flowSignalsIndex < this.flowSignals.length && i < fromIdx + nBases) {
-                short s = this.flowSignals[this.flowSignalsIndex];
-                int nextFlowSignalsStart = -1, nextFlowSignalsEnd = -1;
-                int j = i + 1;
-                if (j < readBases.length) {
-                    if (this.readNegativeStrandFlag) {
-                        nextFlowSignalsEnd = this.flowSignalsIndex - 1;
-                        // NB: loop condition is not symmetric to the forward, as we must respect the directionality of sequencing.
-                        // For example, if our flow order is TACAG, and our read bases are TAG, then the flow signal vector is 
-                        // approximately 100,100,0,0,100.  Since we move in the reverse direction with respect to the flow signal 
-                        // vector we must pre-compute where the flows incorporations are expected to occur, instead of just looking 
-                        // for the next flow that matches our next read base (we would place the A incorporation flow in the fourth flow,
-                        // which is wrong).
-                        while (!this.incorporations[this.flowSignalsIndex] ||
-                                this.flowOrder.charAt(this.flowOrderIndex) != NT2COMP[readBases[j]]) { // NB: malicious input can cause infinite loops here
-                            this.flowOrderIndex--;
-                            this.flowSignalsIndex--;
-                            if (this.flowOrderIndex < 0) {
-                                this.flowOrderIndex = this.flowOrder.length() - 1;
-                            }
-                        }
-                        nextFlowSignalsStart = this.flowSignalsIndex + 1;
-                    } else {
-                        nextFlowSignalsStart = this.flowSignalsIndex + 1;
-                        while (this.flowOrder.charAt(this.flowOrderIndex) != readBases[j]) { // NB: malicious input can cause infinite loops here
-                            this.flowOrderIndex++;
-                            this.flowSignalsIndex++;
-                            if (this.flowOrder.length() <= this.flowOrderIndex) {
-                                this.flowOrderIndex = 0;
-                            }
-                        }
-                        nextFlowSignalsEnd = this.flowSignalsIndex - 1;
-                    }
-                }
-                // set-up block
-                blockFlowSignals[idx] = new short[3][];
-                // this.previous context
-                if (0 <= this.prevFlowSignalsStart && this.prevFlowSignalsStart <= this.prevFlowSignalsEnd && this.prevFlowSignalsEnd < this.flowSignals.length) {
-                    blockFlowSignals[idx][0] = new short[this.prevFlowSignalsEnd - this.prevFlowSignalsStart + 1];
-                    if (this.readNegativeStrandFlag) {
-                        for (j = this.prevFlowSignalsEnd; this.prevFlowSignalsStart <= j; j--) {
-                            blockFlowSignals[idx][0][this.prevFlowSignalsEnd - j] = this.flowSignals[j];
-                        }
-                    } else {
-                        for (j = this.prevFlowSignalsStart; j <= this.prevFlowSignalsEnd; j++) {
-                            blockFlowSignals[idx][0][j-this.prevFlowSignalsStart] = this.flowSignals[j];
-                        }
-                    }
-                } else {
-                    blockFlowSignals[idx][0] = null;
-                }
-                // current context
-                blockFlowSignals[idx][1] = new short[1];
-                blockFlowSignals[idx][1][0] = s;
-                // next context
-                if (0 <= nextFlowSignalsStart && nextFlowSignalsStart <= nextFlowSignalsEnd && nextFlowSignalsEnd < this.flowSignals.length) {
-                    blockFlowSignals[idx][2] = new short[nextFlowSignalsEnd - nextFlowSignalsStart + 1];
-                    if (this.readNegativeStrandFlag) {
-                        for (j = nextFlowSignalsEnd; nextFlowSignalsStart <= j; j--) {
-                            blockFlowSignals[idx][2][nextFlowSignalsEnd - j] = this.flowSignals[j];
-                        }
-                    } else {
-                        for (j = nextFlowSignalsStart; j <= nextFlowSignalsEnd; j++) {
-                            blockFlowSignals[idx][2][j-nextFlowSignalsStart] = this.flowSignals[j];
-                        }
-                    }
-                } else {
-                    blockFlowSignals[idx][2] = null;
-                }
-                // update for the next iteration
-                this.prevFlowSignalsStart = nextFlowSignalsStart;
-                this.prevFlowSignalsEnd = nextFlowSignalsEnd;
-                i++; // next base
-                idx++; // next base
-            }
-            return blockFlowSignals;
-        } 
-    }
-
     /**
      * Create the alignment blocks from the read bases and alignment information in the CIGAR
      * string.  The CIGAR string encodes insertions, deletions, skipped regions, and padding.
@@ -418,7 +259,7 @@ public class SamAlignment extends AbstractAlignment implements Alignment {
      * @param readBases
      * @param readBaseQualities
      */
-    void createAlignmentBlocks(String cigarString, byte[] readBases, byte[] readBaseQualities) {
+    private void createAlignmentBlocks(String cigarString, byte[] readBases, byte[] readBaseQualities) {
         createAlignmentBlocks(cigarString, readBases, readBaseQualities, null, null, -1);
     }
 
@@ -429,12 +270,12 @@ public class SamAlignment extends AbstractAlignment implements Alignment {
      * @param cigarString
      * @param readBases
      * @param readBaseQualities
-     * @param flowSignals from the FZ tag, null if not present
-     * @param flowOrder from the RG.FO header tag, null if not present
+     * @param flowSignals       from the FZ tag, null if not present
+     * @param flowOrder         from the RG.FO header tag, null if not present
      * @param flowOrderStart
      */
-    void createAlignmentBlocks(String cigarString, byte[] readBases, byte[] readBaseQualities,
-            short[] flowSignals, String flowOrder, int flowOrderStart) {
+    private void createAlignmentBlocks(String cigarString, byte[] readBases, byte[] readBaseQualities,
+                                       short[] flowSignals, String flowOrder, int flowOrderStart) {
 
         boolean showSoftClipped = PreferenceManager.getInstance().getAsBoolean(PreferenceManager.SAM_SHOW_SOFT_CLIPPED);
 
@@ -507,10 +348,10 @@ public class SamAlignment extends AbstractAlignment implements Alignment {
         int blockIdx = 0;
         int insertionIdx = 0;
         int gapIdx = 0;
-        FlowOrderAndSignalsBlockHelper fBlockHelper = null;
+        FlowSignalContextBuilder fBlockBuilder = null;
         if (null != flowSignals) {
             if (0 < readBases.length) {
-                fBlockHelper = new FlowOrderAndSignalsBlockHelper(flowSignals, flowOrder, flowOrderStart, readBases, this.readNegativeStrandFlag);
+                fBlockBuilder = new FlowSignalContextBuilder(flowSignals, flowOrder, flowOrderStart, readBases, fromIdx, this.readNegativeStrandFlag);
             }
         }
         prevOp = 0;
@@ -524,7 +365,6 @@ public class SamAlignment extends AbstractAlignment implements Alignment {
 
                     byte[] blockBases = new byte[op.nBases];
                     byte[] blockQualities = new byte[op.nBases];
-                    short[][][] blockFlowSignals = null;
                     AlignmentBlock block = null;
 
                     //Default value
@@ -548,9 +388,9 @@ public class SamAlignment extends AbstractAlignment implements Alignment {
                         System.arraycopy(readBaseQualities, fromIdx, blockQualities, 0, op.nBases);
                     }
                     
-                    if (null != fBlockHelper) {
-                        blockFlowSignals = fBlockHelper.createBlockFlowSignals(readBases, fromIdx, op.nBases);
-                        block = AlignmentBlock.getInstance(blockStart, blockBases, blockQualities, blockFlowSignals, this);
+                    if (null != fBlockBuilder) {
+                        block = AlignmentBlock.getInstance(blockStart, blockBases, blockQualities, 
+                                fBlockBuilder.getFlowSignalContext(readBases, fromIdx, op.nBases), this);
                     } else {
                         block = AlignmentBlock.getInstance(blockStart, blockBases, blockQualities, this);
                     }
@@ -572,7 +412,6 @@ public class SamAlignment extends AbstractAlignment implements Alignment {
                     gapTypes[gapIdx++] = op.operator;
                 } else if (op.operator == INSERTION) {
                     AlignmentBlock block = null;
-                    short[][][] blockFlowSignals = null;
 
                     // This gap is between blocks split by insertion.   It is a zero
                     // length gap but must be accounted for.
@@ -593,9 +432,9 @@ public class SamAlignment extends AbstractAlignment implements Alignment {
                         System.arraycopy(readBaseQualities, fromIdx, blockQualities, 0, op.nBases);
                     }
                     
-                    if (null != fBlockHelper) {
-                        blockFlowSignals = fBlockHelper.createBlockFlowSignals(readBases, fromIdx, op.nBases);
-                        block = AlignmentBlock.getInstance(blockStart, blockBases, blockQualities, blockFlowSignals, this);
+                    if (null != fBlockBuilder) {
+                        block = AlignmentBlock.getInstance(blockStart, blockBases, blockQualities, 
+                                fBlockBuilder.getFlowSignalContext(readBases, fromIdx, op.nBases), this);
                     } else {
                         block = AlignmentBlock.getInstance(blockStart, blockBases, blockQualities, this);
                     }
@@ -606,7 +445,7 @@ public class SamAlignment extends AbstractAlignment implements Alignment {
 
                 }
             } catch (Exception e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                log.error("Error processing CIGAR string", e);
             }
             prevOp = op.operator;
         }
@@ -723,6 +562,10 @@ public class SamAlignment extends AbstractAlignment implements Alignment {
         return library;
     }
 
+    public SAMRecord getRecord() {
+        return this.record;
+    }
+
     @Override
     public String toString() {
         return record.getSAMString();
@@ -785,7 +628,7 @@ public class SamAlignment extends AbstractAlignment implements Alignment {
 
             for (SAMRecord.SAMTagAndValue tag : attributes) {
                 buf.append("<br>" + tag.tag + " = ");
-                
+
                 if (tag.value.getClass().isArray()) { // ignore array types
                     buf.append("[not shown]<br>");
                     continue;
@@ -899,22 +742,20 @@ public class SamAlignment extends AbstractAlignment implements Alignment {
         Object attribute = record.getAttribute("ZF"); // NB: from a TMAP optional tag
         if (null == attribute) {
             return -1;
-        }
-        else {
-            return (Integer)attribute;
+        } else {
+            return (Integer) attribute;
         }
     }
 
-   /**
-     * @param record the SAM record
-     * @param flowOrder the flow order corresponding to this read
+    /**
+     * @param record      the SAM record
+     * @param flowOrder   the flow order corresponding to this read
      * @param keySequence sequence the key sequence corresponding to this read
      * @return the flow signals in 100x format (SFF), only if they exist (FZ tag),
-     * if the key sequence and flow order are found in the read group header tag 
-     * (RG.KS and RG.FO).  Note: the array proceeds in the sequencing direction. 
+     *         if the key sequence and flow order are found in the read group header tag
+     *         (RG.KS and RG.FO).  Note: the array proceeds in the sequencing direction.
      */
-    public short[] getFlowSignals(SAMRecord record, String flowOrder, String keySequence)
-    {
+    public short[] getFlowSignals(SAMRecord record, String flowOrder, String keySequence) {
         short[] r = null;
         int i;
         int startFlow, keySignalOverlap;
@@ -931,48 +772,42 @@ public class SamAlignment extends AbstractAlignment implements Alignment {
 
         // get the # of bases that the first base in the read overlaps with the last base(s) in the key
         if (this.readNegativeStrandFlag) {
-            firstBase = (char)NT2COMP[record.getReadBases()[record.getReadLength()-1]];
-        }
-        else {
-            firstBase = (char)record.getReadBases()[0];
+            firstBase = (char) NT2COMP[record.getReadBases()[record.getReadLength() - 1]];
+        } else {
+            firstBase = (char) record.getReadBases()[0];
         }
         keySignalOverlap = 0;
-        for (i=keySequence.length()-1; 0<=i && keySequence.charAt(i) == firstBase; i--) { 
+        for (i = keySequence.length() - 1; 0 <= i && keySequence.charAt(i) == firstBase; i--) {
             keySignalOverlap += 100;
         }
 
         Object attribute = record.getAttribute("FZ");
         if (null == attribute) {
             return null;
-        }
-        else if (attribute instanceof short[]) {
-            short[] signals = (short[])attribute;
-            r = new short[signals.length-startFlow];
-            for (i=startFlow;i<signals.length;i++) {
-                r[i-startFlow] = signals[i];
+        } else if (attribute instanceof short[]) {
+            short[] signals = (short[]) attribute;
+            r = new short[signals.length - startFlow];
+            for (i = startFlow; i < signals.length; i++) {
+                r[i - startFlow] = signals[i];
             }
-        }
-        else if (attribute instanceof int[]) {
+        } else if (attribute instanceof int[]) {
             int[] signals = (int[]) attribute;
-            r = new short[signals.length-startFlow];
+            r = new short[signals.length - startFlow];
             System.arraycopy(signals, startFlow, r, 0, r.length);
-        }
-        else if (attribute instanceof byte[]) {
-            byte[] signals = (byte[])attribute;
-            r = new short[signals.length-startFlow];
-            for (i=startFlow;i<signals.length;i++) {
-                r[i-startFlow] = signals[i];
+        } else if (attribute instanceof byte[]) {
+            byte[] signals = (byte[]) attribute;
+            r = new short[signals.length - startFlow];
+            for (i = startFlow; i < signals.length; i++) {
+                r[i - startFlow] = signals[i];
             }
-        }
-        else {
+        } else {
             return null;
         }
         // Subtract the key's contribution to the first base
         if (0 < keySignalOverlap && 0 < r.length) {
             if (r[0] <= keySignalOverlap) {
                 r[0] = 0;
-            }
-            else {
+            } else {
                 r[0] -= keySignalOverlap;
             }
         }
